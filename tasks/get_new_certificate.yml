@@ -1,0 +1,43 @@
+---
+- name: Ensure privatekey exists
+  openssl_privatekey:
+    path: "{{ certificate_private_key_path }}"
+
+- name: Generate certificate signing request
+  openssl_csr:
+    path: "{{ certificate_csr_path }}"
+    privatekey_path: "{{ certificate_private_key_path }}"
+    common_name: "{{ certificate_common_name }}"
+    country_name: "{{ certificate_country_name }}"
+    organization_name: "{{ certificate_organization_name }}"
+    email_address: "{{ certificate_email_address }}"
+
+- name: Slurp certificate signing request
+  slurp:
+    src: "{{ certificate_csr_path }}"
+  register: csr
+
+- name: Copy to server
+  copy:
+    content: "{{ csr }}"
+    dest: "{{ certificate_default_cert_path }}/{{ inventory_hostname }}.csr"
+  delegate_to: "{{ certificate_ca_server }}"
+
+- name: Sign certificate signing request
+  openssl_certificate:
+    path: "{{ certificate_default_cert_path }}/{{ inventory_hostname }}.crt"
+    private: "{{ certificate_ca_key_path }}"
+    provider: selfsinged
+    csr_path: "{{ certificate_default_cert_path }}/{{ inventory_hostname }}.csr"
+  delegate_to: "{{ certificate_ca_server }}"
+
+- name: Slurp certificate
+  slurp:
+    src: "{{ certificate_default_cert_path }}/{{ inventory_hostname }}.crt"
+  register: signed_certificate
+  delegate_to: "{{ certificate_ca_server }}"
+
+- name: Copy certificate to localhost
+  copy:
+    content: "{{ signed_certificate }}"
+    dest: "{{ certificate_path }}"

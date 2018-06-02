@@ -1,0 +1,21 @@
+---
+- name: Check if ca certificate exists
+  stat: "{{ certificate_ca_cert_path }}"
+  register: certificate_ca_cert_path_stats
+  delegate_to: "{{ certificate_ca_server }}"
+
+- name: Generate new CA
+  include: generate_ca.yml
+  when: not certificate_ca_cert_path_stats.stat.exists
+  delegate_to: "{{ certificate_ca_server }}"
+
+- name: Slurp ca certificate
+  slurp:
+    src: "{{ certificate_ca_cert_path }}"
+  register: ca_certificate
+  delegate_to: "{{ certificate_ca_server }}"
+
+- name: "Copy ca certificate to {{ inventory_hostname }}"
+  copy:
+    content: "{{ ca_certificate }}"
+    dest: "{{ certificate_local_ca_path }}"

@@ -1,6 +1,7 @@
 ---
 - name: Check if ca public key is present
-
+  stat: "{{ certificate_local_ca_path }}"
+  register: ca_certificate_present
 
 - name: Check if a certificate is present
   stat: "{{ certificate_path }}"
@@ -14,51 +15,17 @@
   when: local_certificate.stat.exists
   register: local_certificate_stats
 
-- name: Check if CA exists
+- name: Get CA certificate
+  include: get_ca_certificate.yml
+  when: not ca_certificate_present.stat.exists
 
-- name: Generate CA privatekey
+- name: Debug
+  debug:
+    var: local_certificate_stats
 
-- name: Generate CA publickey
+- name: Get new certificate
+  include: get_new_certificate.yml
+  when: not ca_certificate_present.stat.exists or local_certificate_stats
 
-- name: Check if privatekey exists
 
-- name: Generate privatekey
 
-- name: Generate certificate signing request
-  openssl_csr:
-    path: "{{ certificate_csr_path }}"
-    privatekey_path: "{{ certificate_private_key_path }}"
-    common_name: "{{ inventory_hostname }}"
-    country_name: "{{ certificate_country_name }}"
-    organization_name: "{{ certificate_organization_name }}"
-    email_address: "{{ certificate_email_address }}"
-
-- name: Slurp certificate signing request
-  slurp: 
-    src: "{{ certificate_csr_path }}"
-  register: csr
-
-- name: Copy to server
-  copy:
-    content: "{{ csr }}"
-    dest: "{{ certificate_default_cert_path }}/{{ inventory_hostname }}.csr"
-    delegate_to:
-
-- name: Sign certificate signing request
-  openssl_certificate:
-    path: "{{ certificate_default_cert_path }}/{{ inventory_hostname }}.crt"
-    private: "{{ certificate_ca_key_path }}"
-    provider: selfsinged
-    csr_path: "{{ certificate_default_cert_path }}/{{ inventory_hostname }}.csr"
-  delegate_to:
-  when:
-
-- name: Slurp certificate
-  slurp:
-    src: "{{ certificate_default_cert_path }}/{{ inventory_hostname }}.crt"
-  register: signed_certificate
-
-- name: Copy certificate to localhost
-  copy:
-    content: "{{ signed_certificate }}"
-    dest: "{{ certificate_path }}"

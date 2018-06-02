@@ -1,0 +1,24 @@
+---
+
+- name: Generate CA privatekey
+  openssl_privatekey:
+    path: "{{ certificate_ca_key_path }}"
+  delegate_to: "{{ certificate_ca_server }}"
+
+- name: Generate CA signing request
+  openssl_csr:
+    path: "{{ certificate_ca_csr_path }}"
+    privatekey_path: "{{ certificate_ca_key_path }}"
+    common_name: "{{ certificate_ca_common_name }}"
+    country_name: "{{ certificate_ca_country_name }}"
+    organization_name: "{{ certificate_ca_organization_name }}"
+    email_address: "{{ certificate__ca_email_address }}"
+  delegate_to: "{{ certificate_ca_server }}"
+
+- name: Generate CA certificate
+  openssl_certificate:
+    path: "{{ certificate_ca_cert_path }}"
+    privatekey_path: "{{ certificate_ca_key_path }}"
+    csr_path: "{{ certificate_ca_csr_path }}"
+    provider: selfsigned
+  delegate_to: "{{ certificate_ca_server }}"
