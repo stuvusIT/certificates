@@ -1,15 +1,30 @@
 ---
+- name: Install pythonOpenSSl
+  apt:
+    name: python-openssl
 - name: Check if ca public key is present
-  stat: "{{ certificate_local_ca_path }}"
+  stat:
+    path: "{{ certificates_local_ca_path }}"
   register: ca_certificate_present
 
 - name: Check if a certificate is present
-  stat: "{{ certificate_path }}"
+  stat:
+    path: "{{ certificates_local_key_dir }}/{{ inventory_hostname }}.crt"
   register: local_certificate
+
+- name: Check if crl is present
+  stat:
+    path: "{{ certificates_local_key_dir }}/ca-crl.pem"
+  register: local_crl
+
+- name: Check if crl is present
+  stat:
+    path: "{{ certificates_local_key_dir }}/crl_number_file"
+  register: crl_number_file
 
 - name: Check if certificate is expired
   openssl_certificate:
-    path: "{{ certificate_path }}"
+    path: "{{ certificates_local_key_dir }}/{{ inventory_hostname }}.crt"
     provider: assertonly
     valid_in: 1209600
   when: local_certificate.stat.exists
@@ -19,13 +34,32 @@
   include: get_ca_certificate.yml
   when: not ca_certificate_present.stat.exists
 
-- name: Debug
-  debug:
-    var: local_certificate_stats
+- name: Slurp crl_number from ca server
+  slurp:
+    src: "{{ certificates_ca_key_dir }}/crl_number"
+  register: crl_number_current
+  delegate_to: "{{ certificates_ca_server }}"
+
+- name: Slurp crl_number from localhost
+  slurp:
+    src: "{{ certificates_ca_key_dir }}/crl_number"
+  register: crl_number
+  when: crl_number_file.stat.exists
+
+- name: Compare crl_numbers
+  set_fact:
+    crl_renew: "{{ crl_number_current | b64decode }} > {{ crl_number | b64decode }}"
+  when: crl_number_file.stat.exists
+
+- name: Force crl_renew
+  set_fact:
+    crl_renew: true
+  when: not crl_number_file.stat.exists
 
 - name: Get new certificate
   include: get_new_certificate.yml
-  when: not ca_certificate_present.stat.exists or local_certificate_stats
+  when: not ca_certificate_present.stat.exists or local_certificate_stats.failed
 
-
-
+- name: Get CA CRL
+  include: get_crl.yml
+  when: not local_crl.stat.exists or crl_renew
