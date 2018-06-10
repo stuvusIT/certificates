@@ -1,0 +1,22 @@
+---
+- name: Slurp crl
+  slurp:
+    src: "{{ certificates_ca_key_dir }}/ca-crl.pem"
+  register: crl_certificate
+  delegate_to: "{{ certificates_ca_server }}"
+
+- name: Copy crl to local host
+  copy:
+    content: "{{ crl_certificate['content'] | b64decode }}"
+    dest: "{{ certificates_local_key_dir }}/ca-crl.pem"
+
+- name: Slurp crl_number
+  slurp:
+    src: "{{ certificates_ca_key_dir }}/crl_number"
+  register: crl_number
+  delegate_to: "{{ certificates_ca_server }}"
+
+- name: Copy crl_number to local host
+  copy:
+    content: "{{ crl_number['content'] | b64decode }}"
+    dest: "{{ certificates_local_key_dir }}/crl_number"
