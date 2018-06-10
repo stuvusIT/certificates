@@ -3,3 +3,5 @@ certificates_ca_key_dir: /etc/ssl/private/ansible-ca
 certificates_local_ca_path: /etc/ssl/ansible-ca.crt
 certificates_local_key_dir: /etc/ssl/private/ansible
 certificates_common_name: "{{ inventory_hostname }}"
+certificates_key_length: 4096
+certificates_days_valid: 3650

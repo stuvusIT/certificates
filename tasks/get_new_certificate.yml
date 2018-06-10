@@ -7,6 +7,7 @@
 - name: Ensure privatekey exists
   openssl_privatekey:
     path: "{{ certificates_local_key_dir }}/{{ inventory_hostname }}.pem"
+    size: "{{ certificates_key_length }}"
 
 - name: Generate certificate signing request
   openssl_csr:

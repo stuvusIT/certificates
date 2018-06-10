@@ -2,6 +2,7 @@
 - name: Install pythonOpenSSl
   apt:
     name: python-openssl
+
 - name: Check if ca public key is present
   stat:
     path: "{{ certificates_local_ca_path }}"
