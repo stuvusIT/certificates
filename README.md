@@ -1,4 +1,4 @@
-# CertificatesRole Name
+# Certificates
 
 This role installs a Certificate Authoriy and generates certificates for every host in the inventory and copys them over
 

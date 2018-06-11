@@ -9,6 +9,7 @@
   copy:
     content: "{{ crl_certificate['content'] | b64decode }}"
     dest: "{{ certificates_local_key_dir }}/ca-crl.pem"
+    mode: 0644
 
 - name: Slurp crl_number
   slurp:
@@ -20,3 +21,4 @@
   copy:
     content: "{{ crl_number['content'] | b64decode }}"
     dest: "{{ certificates_local_key_dir }}/crl_number"
+    mode: 0644
