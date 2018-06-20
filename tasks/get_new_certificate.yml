@@ -4,19 +4,11 @@
     path: "{{ certificates_local_key_dir }}"
     state: directory
 
-- name: Ensure privatekey exists
-  openssl_privatekey:
-    path: "{{ certificates_local_key_dir }}/{{ inventory_hostname }}.pem"
-    size: "{{ certificates_key_length }}"
-
-- name: Generate certificate signing request
-  openssl_csr:
-    path: "{{ certificates_local_key_dir }}/{{ inventory_hostname }}.csr"
-    privatekey_path: "{{ certificates_local_key_dir }}/{{ inventory_hostname }}.pem"
-    common_name: "{{ certificates_common_name }}"
-    country_name: "{{ certificates_country_name }}"
-    organization_name: "{{ certificates_organization_name }}"
-    email_address: "{{ certificates_email_address }}"
+- name: Generate client key and csr
+  command: "openssl req -nodes -newkey rsa:{{ certificates_key_length }} -keyout {{ inventory_hostname }}.pem -out {{ inventory_hostname }}.csr -days {{ certificates_ca_days_valid }} -{{ certificates_ca_digest }} -subj /CN={{ certificates_common_name }}/"
+  args:
+    chdir: "{{ certificates_local_key_dir }}"
+    creates: "{{ inventory_hostname }}.pem"
 
 - name: Slurp certificate signing request
   slurp:
@@ -29,12 +21,11 @@
     dest: "{{ certificates_ca_key_dir }}/{{ inventory_hostname }}.csr"
   delegate_to: "{{ certificates_ca_server }}"
 
-- name: Sign certificate signing request
-  openssl_certificate:
-    path: "{{ certificates_ca_key_dir }}/{{ inventory_hostname }}.crt"
-    privatekey_path: "{{ certificates_ca_key_dir }}/ca-key.pem"
-    provider: selfsigned
-    csr_path: "{{ certificates_ca_key_dir }}/{{ inventory_hostname }}.csr"
+- name: Sign client key
+  command: openssl x509 -req -in {{ inventory_hostname }}.csr -out {{ inventory_hostname }}.crt -CA ca.crt -CAkey ca-key.pem -{{ certificates_ca_digest }} -days {{ certificates_ca_days_valid }} -CAcreateserial -extfile openssl-client.ext
+  args:
+    chdir: "{{ certificates_ca_key_dir }}"
+    creates: "{{ inventory_hostname }}.crt"
   delegate_to: "{{ certificates_ca_server }}"
 
 - name: Delete csr on ca server

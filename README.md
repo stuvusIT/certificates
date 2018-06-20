@@ -27,6 +27,8 @@ This role requires and apt based system
 | certificates_organization_name    | :heavy_check_mark:            | Organization Name that runs the host                    |
 | certificates_key_length           | `4096`                        | Key length in bits                                      |
 | certificates_days_valid           | `3650`                        | Days a key is valid                                     |
+| certificates_ca_days_valid        | `3650`                        | Days the ca is valid                                    |
+| certificates_ca_digest            | `sha256`                      | Digest Algorithm to use when creating the ca key.       |
 
 ## Example Playbook
 
