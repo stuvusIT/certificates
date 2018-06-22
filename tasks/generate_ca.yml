@@ -27,6 +27,8 @@
 - name: Protect CA key
   file:
     path: "{{ certificates_ca_key_dir }}"
+    owner: root
+    group: root
     mode: 0400
   delegate_to: "{{ certificates_ca_server }}"
 
