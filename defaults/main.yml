@@ -5,3 +5,5 @@ certificates_local_key_dir: /etc/ssl/private/ansible
 certificates_common_name: "{{ inventory_hostname }}"
 certificates_key_length: 4096
 certificates_days_valid: 3650
+certificates_ca_days_valid: 3650
+certificates_ca_digest: sha256

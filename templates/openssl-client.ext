@@ -1,0 +1,7 @@
+# {{ ansible_managed }}
+# X509 extensions for a client
+
+basicConstraints = CA:FALSE
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer:always
+

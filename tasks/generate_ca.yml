@@ -5,28 +5,38 @@
     state: directory
   delegate_to: "{{ certificates_ca_server }}"
 
-- name: Generate CA privatekey
-  openssl_privatekey:
-    path: "{{ certificates_ca_key_dir }}/ca-key.pem"
-    size: "{{ certificates_key_length }}"
+- name: Copy openssl server/ca extensions
+  template:
+    src: "{{ item }}"
+    dest: "{{ certificates_ca_key_dir }}"
+    owner: root
+    group: root
+    mode: 0400
+  with_items:
+    - openssl-ca.ext
+    - openssl-client.ext
   delegate_to: "{{ certificates_ca_server }}"
 
-- name: Generate CA signing request
-  openssl_csr:
-    path: "{{ certificates_ca_key_dir }}/ca.csr"
-    privatekey_path: "{{ certificates_ca_key_dir }}/ca-key.pem"
-    common_name: "{{ certificates_ca_common_name }}"
-    country_name: "{{ certificates_ca_country_name }}"
-    organization_name: "{{ certificates_ca_organization_name }}"
-    email_address: "{{ certificates_ca_email_address }}"
+- name: Generate CA key
+  command: openssl req -nodes -newkey rsa:{{ certificates_key_length }} -keyout ca-key.pem -out ca-csr.pem -days {{ certificates_ca_days_valid }} -{{ certificates_ca_digest }} -subj /CN={{ certificates_ca_common_name }}/
+  args:
+    chdir: "{{ certificates_ca_key_dir }}"
+    creates: ca-key.pem
   delegate_to: "{{ certificates_ca_server }}"
 
-- name: Generate CA certificate
-  openssl_certificate:
-    path: "{{ certificates_ca_key_dir }}/ca.crt"
-    privatekey_path: "{{ certificates_ca_key_dir }}/ca-key.pem"
-    csr_path: "{{ certificates_ca_key_dir }}/ca.csr"
-    provider: selfsigned
+- name: Protect CA key
+  file:
+    path: "{{ certificates_ca_key_dir }}"
+    owner: root
+    group: root
+    mode: 0400
+  delegate_to: "{{ certificates_ca_server }}"
+
+- name: Sign CA key
+  command: openssl x509 -req -in ca-csr.pem -out ca.crt -CAcreateserial -signkey ca-key.pem -{{ certificates_ca_digest }} -days {{ certificates_ca_days_valid }} -extfile openssl-ca.ext
+  args:
+    chdir: "{{ certificates_ca_key_dir }}"
+    creates: ca.crt
   delegate_to: "{{ certificates_ca_server }}"
 
 - name: Install ca.conf config file
@@ -41,14 +51,14 @@
 - name: Create initial certificate revocation list squence number
   shell: "echo 00 > crl_number"
   args:
-    chdir: "{{certificates_ca_key_dir}}"
+    chdir: "{{ certificates_ca_key_dir }}"
     creates: crl_number
   delegate_to: "{{ certificates_ca_server }}"
 
 - name: Install revocation script
   template:
     src: revoke.sh.j2
-    dest: "{{certificates_ca_key_dir}}/revoke.sh"
+    dest: "{{ certificates_ca_key_dir }}/revoke.sh"
     owner: root
     group: root
     mode: 0755
@@ -56,7 +66,7 @@
 
 - name: Ensure certificate revocation list database exists
   file:
-    path: "{{certificates_ca_key_dir}}/index.txt"
+    path: "{{ certificates_ca_key_dir }}/index.txt"
     state: touch
   delegate_to: "{{ certificates_ca_server }}"
 

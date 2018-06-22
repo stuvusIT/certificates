@@ -1,0 +1,8 @@
+# {{ ansible_managed }}
+# X509 extensions for a ca
+
+basicConstraints = CA:TRUE
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer:always
+keyUsage = cRLSign, keyCertSign
+
