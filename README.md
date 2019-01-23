@@ -11,24 +11,28 @@ This role requires and apt based system
 
 ### General
 
-| Name                              | Required/Default              | Description                                             |
-|-----------------------------------|:-----------------------------:|---------------------------------------------------------|
-| certificates_ca_server            | :heavy_check_mark:            | Inventory Hostname of the server running the ca         |
-| certificates_ca_key_dir           | `/etc/ssl/private/ansible-ca` | Directory where the files for the ca should be stored   |
-| certificates_local_ca_path        | `/etc/ssl/ansible-ca.crt`     | Path where the ca.crt should be copied to               |
-| certificates_ca_organization_name | :heavy_check_mark:            | Organization Name running the CA                        |
-| certificates_ca_common_name       | :heavy_check_mark:            | Common Name for the CA                                  |
-| certificates_ca_country_name      | :heavy_check_mark:            | Country where the CA ist located                        |
-| certificates_ca_email_address     | :heavy_check_mark:            | Email Address where the CA Administrator can be reached |
-| certificates_local_key_dir        | `/etc/ssl/private/ansible`    | Directory where the files  should be stored             |
-| certificates_common_name          | `{{ inventory_hostname }}`    | Common Name for the host certificate                    |
-| certificates_country_name         | :heavy_check_mark:            | Country where the Host is located                       |
-| certificates_email_address        | :heavy_check_mark:            | Email Address where the Administrator can be reached    |
-| certificates_organization_name    | :heavy_check_mark:            | Organization Name that runs the host                    |
-| certificates_key_length           | `4096`                        | Key length in bits                                      |
-| certificates_days_valid           | `3650`                        | Days a key is valid                                     |
-| certificates_ca_days_valid        | `3650`                        | Days the ca is valid                                    |
-| certificates_ca_digest            | `sha256`                      | Digest Algorithm to use when creating the ca key.       |
+| Name                              |                 Required/Default                  | Description                                             |
+| --------------------------------- | :-----------------------------------------------: | ------------------------------------------------------- |
+| certificates_ca_server            |                :heavy_check_mark:                 | Inventory Hostname of the server running the ca         |
+| certificates_ca_key_dir           |           `/etc/ssl/private/ansible-ca`           | Directory where the files for the ca should be stored   |
+| certificates_local_ca_path        | `/usr/local/share/ca-certificates/ansible-ca.crt` | Path where the ca.crt should be copied to.              |
+| certificates_ca_organization_name |                :heavy_check_mark:                 | Organization Name running the CA                        |
+| certificates_ca_common_name       |                :heavy_check_mark:                 | Common Name for the CA                                  |
+| certificates_ca_country_name      |                :heavy_check_mark:                 | Country where the CA ist located                        |
+| certificates_ca_email_address     |                :heavy_check_mark:                 | Email Address where the CA Administrator can be reached |
+| certificates_local_key_dir        |            `/etc/ssl/private/ansible`             | Directory where the files  should be stored             |
+| certificates_common_name          |            `{{ inventory_hostname }}`             | Common Name for the host certificate                    |
+| certificates_country_name         |                :heavy_check_mark:                 | Country where the Host is located                       |
+| certificates_email_address        |                :heavy_check_mark:                 | Email Address where the Administrator can be reached    |
+| certificates_organization_name    |                :heavy_check_mark:                 | Organization Name that runs the host                    |
+| certificates_key_length           |                      `4096`                       | Key length in bits                                      |
+| certificates_days_valid           |                      `3650`                       | Days a key is valid                                     |
+| certificates_ca_days_valid        |                      `3650`                       | Days the ca is valid                                    |
+| certificates_ca_digest            |                     `sha256`                      | Digest Algorithm to use when creating the ca key.       |
+
+Note:
+CA certificates in `/usr/local/share/ca-certificates` are automatically trusted.
+If that's desired, then `certificates_local_ca_path` should be a file in that directory.
 
 ## Example Playbook
 
