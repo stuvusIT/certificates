@@ -1,7 +1,9 @@
 ---
 - name: Install pythonOpenSSl
   apt:
-    name: python-openssl
+    name:
+      - python-openssl
+      - python3-openssl
 
 - name: Check if ca public key is present
   stat:
