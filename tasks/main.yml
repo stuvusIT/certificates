@@ -27,7 +27,7 @@
   register: crl_number_file
 
 - name: Check if certificate is expired
-  openssl_certificate:
+  community.crypto.x509_certificate:
     path: "{{ certificates_local_key_dir }}/{{ inventory_hostname }}.crt"
     provider: assertonly
     valid_in: 1209600
